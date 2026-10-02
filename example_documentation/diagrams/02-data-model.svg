@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1100" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1100 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1100" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1100" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="38" y="608" style="font-family: Helvetica-Bold; font-size: 27px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1216) scale(1,-1)">02 / Data model and invariants</text>
+			<text x="38" y="582" style="font-family: Helvetica; font-size: 13px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,1164) scale(1,-1)">Availability and loan status are derived. Do not maintain competing copies of state.</text>
+			<path d="M 38,565 L 1062,565 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 3;"/>
+			<rect x="40" y="326" width="270" height="177" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="57" y="474" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,948) scale(1,-1)">members</text>
+			<text x="57" y="449" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,898) scale(1,-1)">id: UUID (PK)</text>
+			<text x="57" y="428" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,856) scale(1,-1)">auth_subject: string (UNIQUE)</text>
+			<text x="57" y="407" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,814) scale(1,-1)">display_name: string</text>
+			<text x="57" y="386" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,772) scale(1,-1)">No passwords stored here</text>
+			<rect x="408" y="200" width="320" height="320" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="425" y="491" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,982) scale(1,-1)">loans</text>
+			<text x="425" y="466" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,932) scale(1,-1)">id: UUID (PK)</text>
+			<text x="425" y="445" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,890) scale(1,-1)">member_id: UUID (FK)</text>
+			<text x="425" y="424" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,848) scale(1,-1)">item_id: UUID (FK)</text>
+			<text x="425" y="403" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,806) scale(1,-1)">client_request_id: UUID</text>
+			<text x="425" y="382" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,764) scale(1,-1)">checked_out_at: timestamptz</text>
+			<text x="425" y="361" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,722) scale(1,-1)">due_at: timestamptz</text>
+			<text x="425" y="340" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,680) scale(1,-1)">returned_at: timestamptz | NULL</text>
+			<text x="425" y="319" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,638) scale(1,-1)">UNIQUE(member_id, client_request_id)</text>
+			<text x="425" y="298" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,596) scale(1,-1)">One active loan per item (partial index)</text>
+			<rect x="825" y="326" width="235" height="177" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="842" y="474" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,948) scale(1,-1)">items</text>
+			<text x="842" y="449" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,898) scale(1,-1)">id: UUID (PK)</text>
+			<text x="842" y="428" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,856) scale(1,-1)">name: string</text>
+			<text x="842" y="407" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,814) scale(1,-1)">category: enum</text>
+			<text x="842" y="386" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,772) scale(1,-1)">description: text</text>
+			<path d="M 310,402 L 408,402 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="408 402, 398.9955 397.6503, 398.9955 406.3497" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="332.654" y="411.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,822) scale(1,-1)">1 to many</text>
+			<path d="M 825,402 L 728,402 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="728 402, 737.0045 406.3497, 737.0045 397.6503" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="750.154" y="411.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,822) scale(1,-1)">1 to many</text>
+			<rect x="45" y="55" width="1010" height="87" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="62" y="113" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,226) scale(1,-1)">Database rules, not just disabled buttons</text>
+			<text x="62" y="88" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,176) scale(1,-1)">returned_at IS NULL -&gt; active; no active loan -&gt; available. Check due_at &gt; checked_out_at.</text>
+			<text x="62" y="67" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,134) scale(1,-1)">Atomic insert + partial unique index means two racing borrowers cannot both win.</text>
+			<text x="38" y="22" style="font-family: Helvetica; font-size: 11px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,44) scale(1,-1)">One member has many loans; one item has many historical loans, but at most one active loan.</text>
+		</g>
+	</g>
+</svg>

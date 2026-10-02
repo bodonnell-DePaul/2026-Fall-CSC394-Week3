@@ -1,0 +1,1355 @@
+openapi: 3.0.3
+info:
+  title: CampusKit API
+  version: 1.0.0-draft
+  description: |
+    CampusKit is a fictional student media club's self-service
+    equipment-borrowing ledger. Members browse club equipment, borrow an
+    item, and record its return. CampusKit records loans; it does not
+    control physical access to equipment.
+
+    **Status: proposed Week 3 contract.** No application implements it yet,
+    and neither server URL is live. Versions, limits, and quotas in this file
+    are sample team design choices, not course requirements. The API
+    contract chapter (`example/03-api-contract.md`) explains the reasoning
+    and walks through the examples.
+
+    ## Scope
+
+    Version 1 covers reading items, and borrowing, listing, viewing, and
+    returning your own loans. It has no inventory changes, deletes,
+    reservations, fines, renewals, email, roles or admin tools, or sign-up.
+    The identity provider handles sign-in, sign-out, and token issuance;
+    those are not part of this API.
+
+    ## Authentication
+
+    - The React client signs members in with OpenID Connect (Authorization
+      Code flow with PKCE) against the team's Auth0 development tenant.
+      Public sign-up is disabled; the only accounts are synthetic,
+      pre-approved club members seeded by the team.
+    - Every `/api/v1` request sends `Authorization: Bearer <access token>`.
+      The API checks the token's signature, issuer, audience, and expiry. A
+      missing, expired, or otherwise invalid token gets 401.
+    - The API looks up the validated `sub` claim in the seeded
+      `members.auth_subject` column. A valid token with no matching member
+      gets 403 `FORBIDDEN` on every business operation, including the
+      catalogue. The API never enrolls members automatically.
+    - Clients never send a member ID, and no response contains one.
+    - `GET /healthz` is the only public operation.
+
+    ## Conventions
+
+    - Bodies are JSON with camelCase property names. Write requests must use
+      `Content-Type: application/json`.
+    - IDs are UUIDs; the server sends them in lowercase. Timestamps are
+      RFC 3339 UTC instants with a `Z` suffix and whole seconds, such as
+      `2026-09-29T18:00:00Z`.
+    - Request bodies are closed. An undeclared property, such as `memberId`,
+      `dueAt`, or `returnedAt`, gets 422; it is never silently ignored.
+    - Each `/api/v1` operation accepts only the query parameters it declares.
+      An unknown or repeated parameter gets 400.
+    - A path or method that is not in this contract gets 404 `NOT_FOUND` in
+      the standard error shape.
+
+    ## Collections
+
+    `GET /api/v1/items` and `GET /api/v1/loans` return
+    `{"items": [...], "page": {"limit": 20, "offset": 0, "total": 1}}`.
+    The list key is `items` for every collection, including loans.
+
+    - `limit` is an integer from 1 to 100 (default 20). `offset` is an
+      integer from 0 to 10000 (default 0). Values such as `0`, `1.5`, or
+      `ten` get 422; an unknown or repeated parameter gets 400.
+    - `page.total` counts all results the caller may see that match the
+      filter, across all pages.
+    - An offset past the end returns 200 with an empty `items` array.
+    - The order is fixed; there is no `sort` parameter. Items are ordered by
+      `name`, then `id`, ascending. Loans are ordered by `checkedOutAt`, then
+      `id`, descending. Offset paging is not a snapshot, so changes between
+      requests can shift later pages.
+
+    ## Errors
+
+    Every error response uses one shape: the Week 3 lecture's error format
+    plus `requestId`. This 422 example comes from a borrow request:
+
+    ```json
+    {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Invalid request data.",
+        "details": [{"field": "itemId", "message": "Must be a UUID."}],
+        "requestId": "req-demo-validation"
+      }
+    }
+    ```
+
+    `details` is always an array: one entry per field or parameter problem,
+    or empty (for example, for malformed JSON or a conflict). `requestId` is
+    an opaque ID that also appears in server logs; it is not the borrowing
+    `clientRequestId`. Messages never contain stack traces, SQL, or token
+    contents.
+
+    | Status | `code` | When |
+    | --- | --- | --- |
+    | 400 | `BAD_REQUEST` | Malformed JSON, a path ID that is not a UUID, or an unknown or repeated query parameter. `details` names the path or query parameter; it is empty for malformed JSON. |
+    | 401 | `UNAUTHENTICATED` | Missing, expired, or otherwise invalid access token. Sent with `WWW-Authenticate: Bearer`. |
+    | 403 | `FORBIDDEN` | Valid token, but its `sub` matches no seeded member (any business operation), or the loan belongs to another member. |
+    | 404 | `NOT_FOUND` | No item or loan has the well-formed ID; or the path or method is not in this contract. |
+    | 409 | `ITEM_UNAVAILABLE` | The item already has an active loan. |
+    | 409 | `IDEMPOTENCY_CONFLICT` | This member already used the `clientRequestId` for a different item. |
+    | 415 | `UNSUPPORTED_MEDIA_TYPE` | A write request whose body is not `application/json`. |
+    | 422 | `VALIDATION_ERROR` | Well-formed request, but a JSON body field is missing, invalid (including a non-UUID `itemId` or `clientRequestId`), or undeclared, or a supported query parameter has an invalid value. All field problems are reported together. |
+    | 429 | `RATE_LIMITED` | The member is over the request quota. Sent with `Retry-After`. |
+    | 500 | `INTERNAL_ERROR` | Unexpected server failure. |
+    | 503 | `SERVICE_UNAVAILABLE` | The database, or the identity provider's signing keys, cannot be reached. |
+
+    ## Check order
+
+    The first check that fails decides the response. All problems found at
+    one step are reported together.
+
+    1. Authentication: the token (401), then the member lookup by `sub` (403).
+    2. Quota (429).
+    3. Request syntax: media type for writes (415); then malformed JSON, a
+       path ID that is not a UUID, or an unknown or repeated query parameter
+       (400).
+    4. Field values: every JSON body field and every supported query
+       parameter value (422).
+    5. Load the referenced item or loan (404).
+    6. Ownership of that loan (403).
+    7. Business rules and the change itself (409, or success).
+
+    `POST /api/v1/loans` checks the member's `clientRequestId` before it
+    loads the item; see that operation. A 500 or 503 can occur at any step.
+
+    ## Retries
+
+    - To retry a borrow, send the same `clientRequestId`. If it matches, the
+      response is the original loan with 200, and no second loan is created.
+    - A repeated return gets 200 with the original `returnedAt`.
+    - After a timeout, 500, or 503 on a write, the outcome is unknown and the
+      change may have been saved. Retry the same request or check
+      `GET /api/v1/loans`; never assume that nothing was saved.
+
+    ## Rate limit (planned)
+
+    Each authenticated member may make 60 requests per fixed one-minute
+    window across `/api/v1`. Over the limit, the response is 429 with
+    `Retry-After` in seconds. `GET /healthz` is not counted.
+
+servers:
+  - url: https://campuskit.example.invalid
+    description: >-
+      Illustrative documentation address only. The .invalid top-level domain
+      never resolves, and nothing is deployed there.
+  - url: http://localhost:3000
+    description: >-
+      Planned local development server. It is not supplied and not running.
+
+tags:
+  - name: Health
+    description: Public process liveness.
+  - name: Items
+    description: Club equipment. Read-only in version 1.
+  - name: Loans
+    description: The calling member's own loans.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /healthz:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: Check that the API process is running
+      description: >-
+        Public liveness check. It does not check the database or the identity
+        provider, so a 200 does not prove that borrowing works. It is not
+        counted toward the rate limit, and it never returns versions, host
+        names, configuration, or secrets.
+      security: []
+      responses:
+        '200':
+          description: The process is running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              examples:
+                ok:
+                  summary: Liveness response
+                  value:
+                    status: ok
+
+  /api/v1/items:
+    get:
+      tags: [Items]
+      operationId: listItems
+      summary: List club equipment
+      description: >-
+        Returns items ordered by `name`, then `id`, both ascending.
+        `available` is computed from active loans on every request and never
+        reveals who has an item. The only accepted query parameters are
+        `available`, `limit`, and `offset`. The catalogue is not public: a
+        valid token with no member mapping gets 403.
+      parameters:
+        - $ref: '#/components/parameters/Available'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: One page of items. `items` may be empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemPage'
+              examples:
+                availableItems:
+                  $ref: '#/components/examples/ItemsPage'
+                noMatches:
+                  summary: A valid query that matches no items
+                  value:
+                    items: []
+                    page:
+                      limit: 20
+                      offset: 0
+                      total: 0
+        '400':
+          $ref: '#/components/responses/BadListQuery'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/NotAMember'
+        '422':
+          $ref: '#/components/responses/InvalidListQuery'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/items/{itemId}:
+    parameters:
+      - $ref: '#/components/parameters/ItemId'
+    get:
+      tags: [Items]
+      operationId: getItem
+      summary: Get one item
+      description: >-
+        Returns one item. A malformed ID gets 400, and a well-formed ID with
+        no item gets 404. A valid token with no member mapping gets 403. This
+        operation accepts no query parameters.
+      responses:
+        '200':
+          description: The item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              examples:
+                beforeLoan:
+                  summary: Club camera 01 before the example loan
+                  value:
+                    id: '11111111-1111-4111-8111-111111111111'
+                    name: Club camera 01
+                    category: camera
+                    description: Entry-level camera with a carry case.
+                    available: true
+                duringLoan:
+                  summary: The same item while the example loan is active
+                  value:
+                    id: '11111111-1111-4111-8111-111111111111'
+                    name: Club camera 01
+                    category: camera
+                    description: Entry-level camera with a carry case.
+                    available: false
+        '400':
+          description: >-
+            400 BAD_REQUEST. `itemId` is not a UUID, or the request has a query
+            parameter (this operation accepts none).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                malformedItemId:
+                  summary: GET /api/v1/items/camera-01
+                  value:
+                    error:
+                      code: BAD_REQUEST
+                      message: Malformed request.
+                      details:
+                        - field: itemId
+                          message: Must be a UUID.
+                      requestId: req-demo-bad-item-id
+                unknownQueryParameter:
+                  $ref: '#/components/examples/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/NotAMember'
+        '404':
+          $ref: '#/components/responses/ItemNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/loans:
+    get:
+      tags: [Loans]
+      operationId: listMyLoans
+      summary: List your loans
+      description: >-
+        Returns only the caller's loans, ordered by `checkedOutAt`, then `id`,
+        both descending (newest first). `page.total` counts the caller's loans
+        that match `status`. The only accepted query parameters are `status`,
+        `limit`, and `offset`.
+      parameters:
+        - $ref: '#/components/parameters/LoanStatusFilter'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: One page of the caller's loans. `items` may be empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanPage'
+              examples:
+                myLoans:
+                  $ref: '#/components/examples/LoansPage'
+                noLoans:
+                  summary: A member who has never borrowed anything
+                  value:
+                    items: []
+                    page:
+                      limit: 20
+                      offset: 0
+                      total: 0
+        '400':
+          $ref: '#/components/responses/BadListQuery'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/NotAMember'
+        '422':
+          $ref: '#/components/responses/InvalidListQuery'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags: [Loans]
+      operationId: createLoan
+      summary: Borrow an item
+      description: |
+        Creates a loan for the caller. The body is exactly `itemId` and
+        `clientRequestId`. The server sets the member (from the access token),
+        `id`, `checkedOutAt` (now), and `dueAt` (exactly 168 hours, seven
+        24-hour periods, after `checkedOutAt`).
+
+        **`clientRequestId` makes retries safe.** The client generates a new
+        UUID for each borrow attempt a member makes, and reuses it only to
+        retry that same attempt, for example after a timeout. Keys are scoped
+        to the member, so another member's identical UUID is unrelated.
+
+        After the common checks, the server decides in this order:
+
+        1. If this member already has a loan with this `clientRequestId`:
+           - Same `itemId`: **200** with that loan in its current state, even
+             if it has since been returned. No second loan is created.
+           - Different `itemId`: **409 `IDEMPOTENCY_CONFLICT`**.
+        2. If no item has this `itemId`: **404 `NOT_FOUND`**.
+        3. If the item has an active loan, anyone's (including the caller's):
+           **409 `ITEM_UNAVAILABLE`**.
+        4. Otherwise it creates the loan: **201** with a `Location` header.
+
+        The database enforces both rules: a partial unique index on `item_id`
+        where `returned_at` is null (one active loan per item), and a unique
+        index on `(member_id, client_request_id)`. When an insert loses a
+        race, the server re-reads the member's `clientRequestId` before
+        answering, so a retry of the member's own request never gets
+        `ITEM_UNAVAILABLE`.
+
+        The key is stored only with a created loan, and it is kept as long as
+        the loan (loans are never deleted). A request that fails stores
+        nothing, so retrying it runs every check again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+            examples:
+              borrowClubCamera:
+                $ref: '#/components/examples/LoanCreate'
+      responses:
+        '200':
+          description: >-
+            Replay. This member already used this `clientRequestId` for this
+            item. The body is that loan's current state, and nothing changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+              examples:
+                replayWhileActive:
+                  $ref: '#/components/examples/LoanCreated'
+                replayAfterReturn:
+                  $ref: '#/components/examples/LoanReturned'
+        '201':
+          description: The loan was created.
+          headers:
+            Location:
+              description: Path of the new loan.
+              schema:
+                type: string
+                format: uri-reference
+                example: /api/v1/loans/33333333-3333-4333-8333-333333333333
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+              examples:
+                created:
+                  $ref: '#/components/examples/LoanCreated'
+        '400':
+          description: >-
+            400 BAD_REQUEST. The body is not valid JSON, or the request has a
+            query parameter (this operation accepts none).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                malformedJson:
+                  summary: The body is not valid JSON
+                  value:
+                    error:
+                      code: BAD_REQUEST
+                      message: Request body must be valid JSON.
+                      details: []
+                      requestId: req-demo-malformed-json
+                unknownQueryParameter:
+                  $ref: '#/components/examples/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/NotAMember'
+        '404':
+          $ref: '#/components/responses/ItemNotFound'
+        '409':
+          description: >-
+            409. `ITEM_UNAVAILABLE` means the item already has an active loan.
+            `IDEMPOTENCY_CONFLICT` means this member already used this
+            `clientRequestId` for a different item. Nothing changed. Refresh
+            availability, or use a new key for a new borrow attempt; do not
+            resubmit blindly.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                itemUnavailable:
+                  $ref: '#/components/examples/ErrorConflict'
+                idempotencyConflict:
+                  summary: Same clientRequestId, different itemId
+                  description: >-
+                    Request body with itemId
+                    66666666-6666-4666-8666-666666666666 and clientRequestId
+                    44444444-4444-4444-8444-444444444444, after that key
+                    already created loan 33333333-3333-4333-8333-333333333333
+                    for item 11111111-1111-4111-8111-111111111111.
+                  value:
+                    error:
+                      code: IDEMPOTENCY_CONFLICT
+                      message: This clientRequestId was already used for a different item.
+                      details: []
+                      requestId: req-demo-idempotency
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          description: >-
+            422 VALIDATION_ERROR. The body is valid JSON, but a field is
+            missing, `itemId` or `clientRequestId` is not a UUID, or the body
+            has an undeclared property. Every field problem is listed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidFields:
+                  $ref: '#/components/examples/ErrorValidation'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/loans/{loanId}:
+    parameters:
+      - $ref: '#/components/parameters/LoanId'
+    get:
+      tags: [Loans]
+      operationId: getLoan
+      summary: Get one of your loans
+      description: >-
+        Returns one of the caller's loans. A malformed ID gets 400. A
+        well-formed ID with no loan gets 404. Another member's loan gets 403,
+        whether it is active or returned. This operation accepts no query
+        parameters.
+      responses:
+        '200':
+          description: The loan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+              examples:
+                active:
+                  $ref: '#/components/examples/LoanCreated'
+                returned:
+                  $ref: '#/components/examples/LoanReturned'
+        '400':
+          description: >-
+            400 BAD_REQUEST. `loanId` is not a UUID, or the request has a query
+            parameter (this operation accepts none).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                malformedLoanId:
+                  summary: GET /api/v1/loans/latest
+                  value:
+                    error:
+                      code: BAD_REQUEST
+                      message: Malformed request.
+                      details:
+                        - field: loanId
+                          message: Must be a UUID.
+                      requestId: req-demo-bad-loan-id
+                unknownQueryParameter:
+                  $ref: '#/components/examples/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/LoanForbidden'
+        '404':
+          $ref: '#/components/responses/LoanNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    patch:
+      tags: [Loans]
+      operationId: returnLoan
+      summary: Return one of your loans
+      description: |
+        Records that the caller returned this loan. The body is exactly
+        `{"status": "returned"}`, and the server sets `returnedAt` to the
+        current time. A loan cannot be made active again, and no other field
+        can change.
+
+        This is idempotent. If the loan is already returned, nothing changes
+        and the response is 200 with the original `returnedAt`. The update
+        applies only while `returned_at` is null, so two racing returns get
+        the same `returnedAt`.
+
+        After the common checks, a missing loan gets 404, and another
+        member's loan gets 403 even if it is already returned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanReturn'
+            examples:
+              markReturned:
+                $ref: '#/components/examples/LoanReturnRequest'
+      responses:
+        '200':
+          description: >-
+            The loan is returned. The first return and every repeat get this
+            same body, with the original `returnedAt`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+              examples:
+                returned:
+                  $ref: '#/components/examples/LoanReturned'
+        '400':
+          description: >-
+            400 BAD_REQUEST. The body is not valid JSON, `loanId` is not a
+            UUID, or the request has a query parameter (this operation accepts
+            none).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                malformedJson:
+                  summary: The body is not valid JSON
+                  value:
+                    error:
+                      code: BAD_REQUEST
+                      message: Request body must be valid JSON.
+                      details: []
+                      requestId: req-demo-return-malformed-json
+                unknownQueryParameter:
+                  $ref: '#/components/examples/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/LoanForbidden'
+        '404':
+          $ref: '#/components/responses/LoanNotFound'
+        '415':
+          description: >-
+            415 UNSUPPORTED_MEDIA_TYPE. The body is not `application/json` (a
+            `charset=utf-8` parameter is allowed).
+          headers:
+            Accept-Patch:
+              description: The media type this operation accepts (RFC 5789).
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                notJson:
+                  summary: 'Content-Type: text/plain'
+                  value:
+                    error:
+                      code: UNSUPPORTED_MEDIA_TYPE
+                      message: Send the request body as application/json.
+                      details: []
+                      requestId: req-demo-return-media-type
+        '422':
+          description: >-
+            422 VALIDATION_ERROR. The body is valid JSON, but `status` is
+            missing or is not `returned`, or the body has another property.
+            Every field problem is listed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                reactivateAndSetTime:
+                  summary: A body that tries to reactivate the loan and set the return time
+                  description: >-
+                    Request body with `status` set to `active` and a
+                    client-chosen `returnedAt`. Both problems are reported
+                    at once.
+                  value:
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Invalid request data.
+                      details:
+                        - field: status
+                          message: 'Must be "returned".'
+                        - field: returnedAt
+                          message: Not allowed. The server sets the return time.
+                      requestId: req-demo-return-invalid
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Access token (a JWT) from the team's Auth0 development tenant,
+        obtained by the client with OpenID Connect Authorization Code + PKCE.
+        The API verifies the signature, issuer, audience, and expiry (else
+        401), then looks up `sub` in the seeded `members.auth_subject` column
+        (no match: 403). The API must never log or echo tokens.
+
+  parameters:
+    ItemId:
+      name: itemId
+      in: path
+      required: true
+      description: Item ID (a UUID). A malformed value gets 400.
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    LoanId:
+      name: loanId
+      in: path
+      required: true
+      description: Loan ID (a UUID). A malformed value gets 400.
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    Available:
+      name: available
+      in: query
+      required: false
+      description: >-
+        `true` lists only items with no active loan; `false` lists only items
+        that are on loan. The value must be exactly `true` or `false`; `1`,
+        `yes`, `TRUE`, or an empty value gets 422, and repeating the parameter
+        gets 400. Omit it to list every item.
+      schema:
+        type: boolean
+    LoanStatusFilter:
+      name: status
+      in: query
+      required: false
+      description: >-
+        Only loans with this status. Any other value gets 422, and repeating
+        the parameter gets 400. Omit it to list all of your loans.
+      schema:
+        $ref: '#/components/schemas/LoanStatus'
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: >-
+        Page size, a base-10 integer from 1 to 100. Any other value gets 422,
+        and repeating the parameter gets 400.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: >-
+        Number of results to skip, a base-10 integer from 0 to 10000. Any
+        other value gets 422, and repeating the parameter gets 400.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 10000
+        default: 0
+
+  headers:
+    WWWAuthenticate:
+      description: >-
+        `Bearer` when no token was sent, or `Bearer error="invalid_token"`
+        when a token was rejected (RFC 6750). It never says which check
+        failed.
+      schema:
+        type: string
+        example: Bearer
+    RetryAfter:
+      description: Seconds until the member's current one-minute window ends.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 60
+        example: 30
+
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+      description: UUID in 8-4-4-4-12 hexadecimal form. The server sends lowercase.
+
+    Timestamp:
+      type: string
+      format: date-time
+      pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
+      description: RFC 3339 UTC instant with a `Z` suffix and whole seconds.
+
+    ItemCategory:
+      type: string
+      enum: [camera, audio, accessory]
+
+    Item:
+      type: object
+      description: >-
+        One physical piece of club equipment. Two identical cameras are two
+        items. Text fields are plain text; clients render them as text, not
+        HTML.
+      additionalProperties: false
+      required: [id, name, category, description, available]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/ItemCategory'
+        description:
+          type: string
+          maxLength: 500
+          description: What the item includes. May be empty.
+        available:
+          type: boolean
+          description: >-
+            `true` when the item has no active loan. Computed from loans on
+            every request, never stored, and never reveals who has the item.
+
+    LoanStatus:
+      type: string
+      enum: [active, returned]
+      description: '`active` while `returnedAt` is null; `returned` once it is set.'
+
+    Loan:
+      type: object
+      description: >-
+        One borrowing of one item by the calling member. The server sets every
+        field. `status` is derived from `returnedAt`. `dueAt` is exactly 168
+        hours after `checkedOutAt`. Once set, `returnedAt` never changes. The
+        response never includes a member ID.
+      additionalProperties: false
+      required: [id, itemId, status, checkedOutAt, dueAt, returnedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        itemId:
+          $ref: '#/components/schemas/Uuid'
+        status:
+          $ref: '#/components/schemas/LoanStatus'
+        checkedOutAt:
+          $ref: '#/components/schemas/Timestamp'
+        dueAt:
+          $ref: '#/components/schemas/Timestamp'
+        returnedAt:
+          type: string
+          format: date-time
+          pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
+          nullable: true
+          description: >-
+            When the loan was returned, as an RFC 3339 UTC instant with whole
+            seconds; `null` while the loan is active.
+
+    Page:
+      type: object
+      description: >-
+        The `limit` and `offset` used, and `total`, the number of results
+        that match the filter and that the caller may see, across all pages.
+      additionalProperties: false
+      required: [limit, offset, total]
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        total:
+          type: integer
+          minimum: 0
+
+    ItemPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/Item'
+        page:
+          $ref: '#/components/schemas/Page'
+
+    LoanPage:
+      type: object
+      description: A page of the caller's own loans. The list key is `items`.
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/Loan'
+        page:
+          $ref: '#/components/schemas/Page'
+
+    LoanCreate:
+      type: object
+      description: >-
+        Exactly these two properties. The server chooses the member, the
+        timestamps, and the due time. In well-formed JSON, a missing or
+        non-UUID value, or any other property such as `memberId` or `dueAt`,
+        gets 422.
+      additionalProperties: false
+      required: [itemId, clientRequestId]
+      properties:
+        itemId:
+          $ref: '#/components/schemas/Uuid'
+        clientRequestId:
+          $ref: '#/components/schemas/Uuid'
+
+    LoanReturn:
+      type: object
+      description: >-
+        Exactly `{"status": "returned"}`. The server sets `returnedAt`. In
+        well-formed JSON, anything else gets 422.
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [returned]
+
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+
+    ErrorCode:
+      type: string
+      description: Stable, machine-readable reason. Clients branch on this, not on `message`.
+      enum:
+        - BAD_REQUEST
+        - VALIDATION_ERROR
+        - UNAUTHENTICATED
+        - FORBIDDEN
+        - NOT_FOUND
+        - ITEM_UNAVAILABLE
+        - IDEMPOTENCY_CONFLICT
+        - UNSUPPORTED_MEDIA_TYPE
+        - RATE_LIMITED
+        - INTERNAL_ERROR
+        - SERVICE_UNAVAILABLE
+
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          minLength: 1
+          description: The body property, path parameter, or query parameter at fault.
+        message:
+          type: string
+          minLength: 1
+
+    Error:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, details, requestId]
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              minLength: 1
+              description: >-
+                Safe, human-readable summary for display. It never contains
+                stack traces, SQL, or token contents.
+            details:
+              type: array
+              description: >-
+                One entry per field problem; empty when no single field is at
+                fault. Always present. Clients must not rely on its order.
+              items:
+                $ref: '#/components/schemas/ErrorDetail'
+            requestId:
+              type: string
+              minLength: 1
+              maxLength: 128
+              description: >-
+                Opaque ID that also appears in the server's logs; quote it
+                when reporting a problem. It is not the `clientRequestId`.
+
+  responses:
+    BadListQuery:
+      description: >-
+        400 BAD_REQUEST. The request has a query parameter that this operation
+        does not declare, or repeats a declared one. Every such parameter is
+        listed in `details`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unknownQueryParameter:
+              $ref: '#/components/examples/BadRequest'
+            repeatedParameter:
+              summary: '?limit=5&limit=10'
+              value:
+                error:
+                  code: BAD_REQUEST
+                  message: Malformed request.
+                  details:
+                    - field: limit
+                      message: Must appear at most once.
+                  requestId: req-demo-repeated-param
+
+    InvalidListQuery:
+      description: >-
+        422 VALIDATION_ERROR. A supported query parameter has an invalid
+        value: `limit` or `offset` is not an integer in range, `available` is
+        not exactly `true` or `false`, or `status` is not `active` or
+        `returned`. Every problem is listed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            badPaging:
+              summary: '?limit=0&offset=ten'
+              value:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request data.
+                  details:
+                    - field: limit
+                      message: Must be an integer from 1 to 100.
+                    - field: offset
+                      message: Must be an integer from 0 to 10000.
+                  requestId: req-demo-query
+
+    Unauthenticated:
+      description: >-
+        401 UNAUTHENTICATED. The access token is missing, expired, or
+        otherwise invalid. No business data is returned.
+      headers:
+        WWW-Authenticate:
+          $ref: '#/components/headers/WWWAuthenticate'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            missingToken:
+              summary: No Authorization header
+              value:
+                error:
+                  code: UNAUTHENTICATED
+                  message: Sign in to continue.
+                  details: []
+                  requestId: req-demo-unauthenticated
+
+    NotAMember:
+      description: >-
+        403 FORBIDDEN. The token is valid, but its `sub` matches no seeded
+        `members.auth_subject`. Every business operation, including the
+        catalogue, answers this way. Sign-up is disabled, and the API never
+        enrolls members automatically.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notAMember:
+              summary: Valid identity with no member record
+              value:
+                error:
+                  code: FORBIDDEN
+                  message: This account is not a CampusKit member.
+                  details: []
+                  requestId: req-demo-not-member
+
+    LoanForbidden:
+      description: >-
+        403 FORBIDDEN. The loan belongs to another member (active or
+        returned), or the token's `sub` matches no seeded member. No loan
+        data is returned.
+        This design deliberately answers 403, not 404, for another member's
+        loan; the API contract chapter explains the trade-off.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notYourLoan:
+              summary: Another member's loan
+              value:
+                error:
+                  code: FORBIDDEN
+                  message: You can only view or return your own loans.
+                  details: []
+                  requestId: req-demo-not-owner
+            notAMember:
+              summary: Valid identity with no member record
+              value:
+                error:
+                  code: FORBIDDEN
+                  message: This account is not a CampusKit member.
+                  details: []
+                  requestId: req-demo-not-member
+
+    ItemNotFound:
+      description: >-
+        404 NOT_FOUND. No item has this well-formed ID, whether it is the
+        path `itemId` or the `itemId` in a borrow request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unknownItem:
+              summary: Item 99999999-9999-4999-8999-999999999999 does not exist
+              value:
+                error:
+                  code: NOT_FOUND
+                  message: Item not found.
+                  details: []
+                  requestId: req-demo-item-not-found
+
+    LoanNotFound:
+      description: 404 NOT_FOUND. No loan has this well-formed ID.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unknownLoan:
+              summary: Loan 99999999-9999-4999-8999-999999999999 does not exist
+              value:
+                error:
+                  code: NOT_FOUND
+                  message: Loan not found.
+                  details: []
+                  requestId: req-demo-loan-not-found
+
+    UnsupportedMediaType:
+      description: >-
+        415 UNSUPPORTED_MEDIA_TYPE. The body is not `application/json` (a
+        `charset=utf-8` parameter is allowed).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notJson:
+              summary: 'Content-Type: text/plain'
+              value:
+                error:
+                  code: UNSUPPORTED_MEDIA_TYPE
+                  message: Send the request body as application/json.
+                  details: []
+                  requestId: req-demo-media-type
+
+    RateLimited:
+      description: >-
+        429 RATE_LIMITED. The member exceeded 60 requests in the current
+        one-minute window (planned policy). Wait `Retry-After` seconds; do not
+        retry in a loop.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            overQuota:
+              summary: 61st request in one window
+              value:
+                error:
+                  code: RATE_LIMITED
+                  message: Too many requests. Try again after the Retry-After delay.
+                  details: []
+                  requestId: req-demo-rate-limited
+
+    InternalError:
+      description: >-
+        500 INTERNAL_ERROR. Unexpected failure; details are only in the server
+        logs. After a write, the change may or may not have been saved:
+        re-read, or retry the same request (for a borrow, with the same
+        `clientRequestId`).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unexpected:
+              summary: Unexpected server failure
+              value:
+                error:
+                  code: INTERNAL_ERROR
+                  message: Something went wrong. Quote the request ID if you report this.
+                  details: []
+                  requestId: req-demo-internal
+
+    ServiceUnavailable:
+      description: >-
+        503 SERVICE_UNAVAILABLE. The database, or the identity provider's
+        signing keys needed to check tokens, cannot be reached. This is never
+        shown as an empty result. After a write, the outcome may be unknown:
+        retry the same request later.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            dependencyDown:
+              summary: The database cannot be reached
+              value:
+                error:
+                  code: SERVICE_UNAVAILABLE
+                  message: CampusKit is temporarily unavailable. Try again shortly.
+                  details: []
+                  requestId: req-demo-unavailable
+
+  examples:
+    BadRequest:
+      summary: 400 BAD_REQUEST for an unknown query parameter
+      description: >-
+        Shared by every business operation, for example
+        `GET /api/v1/items?debug=true`. This example is inline only; it has
+        no JSON file.
+      value:
+        error:
+          code: BAD_REQUEST
+          message: Malformed request.
+          details:
+            - field: debug
+              message: Unsupported query parameter.
+          requestId: req-demo-bad-request
+
+    LoanCreate:
+      summary: Borrow Club camera 01
+      description: Request body. File `examples/loan-create.json`.
+      x-example-file: examples/loan-create.json
+      value:
+        itemId: '11111111-1111-4111-8111-111111111111'
+        clientRequestId: '44444444-4444-4444-8444-444444444444'
+
+    LoanCreated:
+      summary: Active loan as created
+      description: >-
+        201 body for the example borrow at 2026-09-29T18:00:00Z, and the 200
+        replay body while the loan is active. File `examples/loan-created.json`.
+      x-example-file: examples/loan-created.json
+      value:
+        id: '33333333-3333-4333-8333-333333333333'
+        itemId: '11111111-1111-4111-8111-111111111111'
+        status: active
+        checkedOutAt: '2026-09-29T18:00:00Z'
+        dueAt: '2026-10-06T18:00:00Z'
+        returnedAt: null
+
+    LoanReturnRequest:
+      summary: Record a return
+      description: Request body. File `examples/loan-return-request.json`.
+      x-example-file: examples/loan-return-request.json
+      value:
+        status: returned
+
+    LoanReturned:
+      summary: Returned loan
+      description: >-
+        200 body for the first and any repeated return (returned at
+        2026-09-30T18:00:00Z), and the 200 replay body for the original borrow
+        request after the return. File `examples/loan-returned.json`.
+      x-example-file: examples/loan-returned.json
+      value:
+        id: '33333333-3333-4333-8333-333333333333'
+        itemId: '11111111-1111-4111-8111-111111111111'
+        status: returned
+        checkedOutAt: '2026-09-29T18:00:00Z'
+        dueAt: '2026-10-06T18:00:00Z'
+        returnedAt: '2026-09-30T18:00:00Z'
+
+    ItemsPage:
+      summary: GET /api/v1/items?available=true&limit=20&offset=0
+      description: >-
+        The catalogue before the example loan. File `examples/items-page.json`.
+      x-example-file: examples/items-page.json
+      value:
+        items:
+          - id: '11111111-1111-4111-8111-111111111111'
+            name: Club camera 01
+            category: camera
+            description: Entry-level camera with a carry case.
+            available: true
+        page:
+          limit: 20
+          offset: 0
+          total: 1
+
+    LoansPage:
+      summary: GET /api/v1/loans while the example loan is active
+      description: >-
+        The caller's loans, newest first: the example loan, then an earlier,
+        returned loan of the same camera. File `examples/loans-page.json`.
+      x-example-file: examples/loans-page.json
+      value:
+        items:
+          - id: '33333333-3333-4333-8333-333333333333'
+            itemId: '11111111-1111-4111-8111-111111111111'
+            status: active
+            checkedOutAt: '2026-09-29T18:00:00Z'
+            dueAt: '2026-10-06T18:00:00Z'
+            returnedAt: null
+          - id: '55555555-5555-4555-8555-555555555555'
+            itemId: '11111111-1111-4111-8111-111111111111'
+            status: returned
+            checkedOutAt: '2026-09-15T18:00:00Z'
+            dueAt: '2026-09-22T18:00:00Z'
+            returnedAt: '2026-09-17T16:30:00Z'
+        page:
+          limit: 20
+          offset: 0
+          total: 2
+
+    ErrorConflict:
+      summary: 409 ITEM_UNAVAILABLE
+      description: >-
+        Another member tries to borrow Club camera 01 while loan
+        33333333-3333-4333-8333-333333333333 is active. File
+        `examples/error-conflict.json`.
+      x-example-file: examples/error-conflict.json
+      value:
+        error:
+          code: ITEM_UNAVAILABLE
+          message: This item is already checked out.
+          details: []
+          requestId: req-demo-conflict
+
+    ErrorValidation:
+      summary: 422 VALIDATION_ERROR with three field problems
+      description: >-
+        Well-formed JSON request body with itemId `not-a-uuid`, no
+        clientRequestId, and a memberId. All three problems are reported at
+        once. File `examples/error-validation.json`.
+      x-example-file: examples/error-validation.json
+      value:
+        error:
+          code: VALIDATION_ERROR
+          message: Invalid request data.
+          details:
+            - field: itemId
+              message: Must be a UUID.
+            - field: clientRequestId
+              message: Required.
+            - field: memberId
+              message: Not allowed. The server identifies the member from the access token.
+          requestId: req-demo-validation

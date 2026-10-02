@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "ITEM_UNAVAILABLE",
+    "message": "This item is already checked out.",
+    "details": [],
+    "requestId": "req-demo-conflict"
+  }
+}

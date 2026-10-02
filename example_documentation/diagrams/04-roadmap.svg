@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1100" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1100 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1100" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1100" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="38" y="608" style="font-family: Helvetica-Bold; font-size: 27px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1216) scale(1,-1)">04 / Delivery roadmap</text>
+			<text x="38" y="582" style="font-family: Helvetica; font-size: 13px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,1164) scale(1,-1)">One-week iterations. Build a thin vertical slice early, then strengthen it.</text>
+			<path d="M 38,565 L 1062,565 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 3;"/>
+			<rect x="38" y="354" width="237" height="166" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="55" y="491" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,982) scale(1,-1)">W3 / Design baseline</text>
+			<text x="55" y="466" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,932) scale(1,-1)">Architecture + API</text>
+			<text x="55" y="445" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,890) scale(1,-1)">Owners + risk register</text>
+			<text x="55" y="380" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,760) scale(1,-1)">PLANNED</text>
+			<rect x="302" y="354" width="237" height="166" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="319" y="491" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,982) scale(1,-1)">W4 / Integration spike</text>
+			<text x="319" y="466" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,932) scale(1,-1)">Data + auth + loan rule</text>
+			<text x="319" y="445" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,890) scale(1,-1)">Thin deployed skeleton</text>
+			<text x="319" y="380" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,760) scale(1,-1)">PLANNED</text>
+			<rect x="566" y="354" width="237" height="166" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="583" y="491" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,982) scale(1,-1)">W5 / Concept demo</text>
+			<text x="583" y="466" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,932) scale(1,-1)">Borrow persists</text>
+			<text x="583" y="445" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,890) scale(1,-1)">CI + negative-path tests</text>
+			<text x="583" y="380" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,760) scale(1,-1)">PLANNED</text>
+			<rect x="830" y="354" width="237" height="166" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="847" y="491" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,982) scale(1,-1)">W6 / Midterm demo</text>
+			<text x="847" y="466" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,932) scale(1,-1)">Borrow + return in cloud</text>
+			<text x="847" y="445" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,890) scale(1,-1)">Reviewed, shared build</text>
+			<text x="847" y="380" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,760) scale(1,-1)">PLANNED</text>
+			<rect x="38" y="149" width="237" height="166" rx="10" ry="10" style="stroke: rgb(9%,19%,30%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="55" y="286" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,572) scale(1,-1)">W7 / Operate</text>
+			<text x="55" y="261" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,522) scale(1,-1)">Logs + alerts + budget</text>
+			<text x="55" y="240" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,480) scale(1,-1)">Peer feedback</text>
+			<text x="55" y="175" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,350) scale(1,-1)">PLANNED</text>
+			<rect x="302" y="149" width="237" height="166" rx="10" ry="10" style="stroke: rgb(9%,19%,30%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="319" y="286" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,572) scale(1,-1)">W8 / Harden</text>
+			<text x="319" y="261" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,522) scale(1,-1)">Security + performance</text>
+			<text x="319" y="240" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,480) scale(1,-1)">Pay down risky debt</text>
+			<text x="319" y="175" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,350) scale(1,-1)">PLANNED</text>
+			<rect x="566" y="149" width="237" height="166" rx="10" ry="10" style="stroke: rgb(9%,19%,30%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="583" y="286" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,572) scale(1,-1)">W9 / Preview demo</text>
+			<text x="583" y="261" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,522) scale(1,-1)">Rehearsed full flow</text>
+			<text x="583" y="240" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,480) scale(1,-1)">Fixes, not new scope</text>
+			<text x="583" y="175" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,350) scale(1,-1)">PLANNED</text>
+			<rect x="830" y="149" width="237" height="166" rx="10" ry="10" style="stroke: rgb(9%,19%,30%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="847" y="286" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,572) scale(1,-1)">W10-11 / Handoff + final</text>
+			<text x="847" y="261" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,522) scale(1,-1)">Runbook + reflection</text>
+			<text x="847" y="240" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,480) scale(1,-1)">Live demo + evidence</text>
+			<text x="847" y="175" style="font-family: Helvetica-Bold; font-size: 10px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,350) scale(1,-1)">PLANNED</text>
+			<text x="38" y="22" style="font-family: Helvetica; font-size: 11px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,44) scale(1,-1)">Week numbers follow the Fall 2026 syllabus. Official calendar dates and rubric remain in D2L.</text>
+		</g>
+	</g>
+</svg>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1100" height="710" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1100 710" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1100" height="710"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-710)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1100" height="710" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="38" y="668" style="font-family: Helvetica-Bold; font-size: 27px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1336) scale(1,-1)">03 / Borrow one item: the vertical slice</text>
+			<text x="38" y="642" style="font-family: Helvetica; font-size: 13px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,1284) scale(1,-1)">The authenticated member comes from the token, never from a client-supplied memberId.</text>
+			<path d="M 38,625 L 1062,625 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 3;"/>
+			<rect x="40" y="551" width="206" height="49" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="57" y="571" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1142) scale(1,-1)">Browser</text>
+			<path d="M 143,551 L 143,84 Z" style="stroke: rgb(76%,82%,86%); stroke-linecap: butt; stroke-width: 1; stroke-dasharray: 4, 4;"/>
+			<rect x="307" y="551" width="206" height="49" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="324" y="571" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1142) scale(1,-1)">API + auth</text>
+			<path d="M 410,551 L 410,84 Z" style="stroke: rgb(76%,82%,86%); stroke-linecap: butt; stroke-width: 1; stroke-dasharray: 4, 4;"/>
+			<rect x="577" y="551" width="206" height="49" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="594" y="571" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1142) scale(1,-1)">Loan service</text>
+			<path d="M 680,551 L 680,84 Z" style="stroke: rgb(76%,82%,86%); stroke-linecap: butt; stroke-width: 1; stroke-dasharray: 4, 4;"/>
+			<rect x="854" y="551" width="206" height="49" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="871" y="571" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1142) scale(1,-1)">PostgreSQL</text>
+			<path d="M 957,551 L 957,84 Z" style="stroke: rgb(76%,82%,86%); stroke-linecap: butt; stroke-width: 1; stroke-dasharray: 4, 4;"/>
+			<path d="M 143,506 L 410,506 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="410 506, 400.9955 501.6503, 400.9955 510.3497" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="218.138" y="515.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,1030) scale(1,-1)">1. POST /api/v1/loans</text>
+			<text x="60" y="480" style="font-family: Helvetica; font-size: 11px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,960) scale(1,-1)">itemId + clientRequestId</text>
+			<path d="M 410,437 L 680,437 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="680 437, 670.9955 432.6503, 670.9955 441.3497" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="480.45799999999997" y="446.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,892) scale(1,-1)">2. Validate token + body</text>
+			<path d="M 680,375 L 957,375 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="957 375, 947.9955 370.6503, 947.9955 379.3497" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="759.472" y="384.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,768) scale(1,-1)">3. Insert in transaction</text>
+			<path d="M 957,316 L 680,316 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="680 316, 689.0045 320.3497, 689.0045 311.6503" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="753.136" y="325.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,650) scale(1,-1)">4. Unique rules enforced</text>
+			<path d="M 680,257 L 410,257 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="410 257, 419.0045 261.3497, 419.0045 252.6503" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="485.648" y="266.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,532) scale(1,-1)">5. Commit; return loan</text>
+			<path d="M 410,197 L 143,197 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="143 197, 152.0045 201.3497, 152.0045 192.6503" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="207.458" y="206.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,412) scale(1,-1)">6. 201 + Location + JSON</text>
+			<text x="60" y="162" style="font-family: Helvetica; font-size: 11px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,324) scale(1,-1)">Show receipt; refresh availability</text>
+			<rect x="42" y="43" width="1015" height="87" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="59" y="101" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,202) scale(1,-1)">Alternative outcomes</text>
+			<text x="59" y="76" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,152) scale(1,-1)">Another borrower won: 409 ITEM_UNAVAILABLE. Same retry key + item: 200, same loan ID.</text>
+			<text x="59" y="55" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,110) scale(1,-1)">Lost response: outcome unknown; retry with the original key. Never silently issue a new key.</text>
+			<text x="38" y="22" style="font-family: Helvetica; font-size: 11px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,44) scale(1,-1)">This is a contract walkthrough, not evidence of an implemented or tested application.</text>
+		</g>
+	</g>
+</svg>

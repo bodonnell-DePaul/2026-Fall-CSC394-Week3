@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1100" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1100 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1100" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1100" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="38" y="608" style="font-family: Helvetica-Bold; font-size: 27px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,1216) scale(1,-1)">01 / System architecture</text>
+			<text x="38" y="582" style="font-family: Helvetica; font-size: 13px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,1164) scale(1,-1)">Proposed modular monolith: one deployed web service, one persistent database.</text>
+			<path d="M 38,565 L 1062,565 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 3;"/>
+			<rect x="40" y="388" width="230" height="132" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="57" y="491" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,982) scale(1,-1)">Member's browser</text>
+			<text x="57" y="466" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,932) scale(1,-1)">React + TypeScript</text>
+			<text x="57" y="445" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,890) scale(1,-1)">Browse / borrow / return</text>
+			<text x="57" y="424" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,848) scale(1,-1)">Untrusted input boundary</text>
+			<rect x="380" y="315" width="340" height="210" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="397" y="496" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,992) scale(1,-1)">Web service</text>
+			<text x="397" y="471" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,942) scale(1,-1)">Serves the built client + Express API</text>
+			<text x="397" y="450" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,900) scale(1,-1)">JWT validation + owner checks</text>
+			<text x="397" y="429" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,858) scale(1,-1)">Loan service: rules + transactions</text>
+			<text x="397" y="408" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,816) scale(1,-1)">Repository: parameterized queries</text>
+			<text x="397" y="387" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,774) scale(1,-1)">Secrets stay on the server</text>
+			<rect x="825" y="348" width="235" height="152" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="842" y="471" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,942) scale(1,-1)">PostgreSQL</text>
+			<text x="842" y="446" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,892) scale(1,-1)">Items / members / loans</text>
+			<text x="842" y="425" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,850) scale(1,-1)">One active loan per item</text>
+			<text x="842" y="404" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,808) scale(1,-1)">Unique retry key per member</text>
+			<text x="842" y="383" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,766) scale(1,-1)">Persistent managed storage</text>
+			<path d="M 270,436 L 380,436 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="380 436, 370.9955 431.6503, 370.9955 440.3497" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="283.81600000000003" y="445.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,890) scale(1,-1)">HTTPS + token</text>
+			<path d="M 720,422 L 825,422 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="825 422, 815.9955 417.6503, 815.9955 426.3497" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="742.65" y="431.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,862) scale(1,-1)">SQL + TLS</text>
+			<rect x="55" y="110" width="295" height="137" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="72" y="218" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,436) scale(1,-1)">Identity provider</text>
+			<text x="72" y="193" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,386) scale(1,-1)">Managed OIDC / Auth0 dev tenant</text>
+			<text x="72" y="172" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,344) scale(1,-1)">Authorization Code + PKCE</text>
+			<text x="72" y="151" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,302) scale(1,-1)">Synthetic demo accounts only</text>
+			<path d="M 158,388 L 158,247 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2;"/>
+			<polygon points="158 247, 153.6503 256.0045, 162.3497 256.0045" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="170" y="326.5" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,653) scale(1,-1)">Sign in</text>
+			<path d="M 385,315 L 335,247 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2; stroke-dasharray: 5, 4;"/>
+			<polygon points="335 247, 336.8299 256.8312, 343.8385 251.6778" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="373.332" y="290.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,580) scale(1,-1)">JWKS</text>
+			<rect x="405" y="111" width="310" height="112" rx="10" ry="10" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="422" y="194" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,388) scale(1,-1)">GitHub Actions (planned)</text>
+			<text x="422" y="169" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,338) scale(1,-1)">PR: lint / types / tests / contract</text>
+			<text x="422" y="148" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,296) scale(1,-1)">Main: deploy + smoke + rollback</text>
+			<path d="M 561,223 L 561,315 Z" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 2; stroke-dasharray: 5, 4;"/>
+			<polygon points="561 315, 565.3497 305.9955, 556.6503 305.9955" style="stroke: rgb(0%,49%,52%); stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,49%,52%); fill-rule: evenodd;"/>
+			<text x="573" y="278.0" style="font-family: Helvetica; font-size: 12px;fill: rgb(0%,49%,52%); stroke:none;" transform="translate(0,556) scale(1,-1)">W5-W6</text>
+			<rect x="803" y="110" width="258" height="126" rx="10" ry="10" style="stroke: rgb(58%,39%,0%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="820" y="207" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(9%,19%,30%); stroke:none;" transform="translate(0,414) scale(1,-1)">Optional MCP adapter</text>
+			<text x="820" y="182" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,364) scale(1,-1)">After MVP; not required</text>
+			<text x="820" y="161" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,322) scale(1,-1)">Read-only item lookup via API</text>
+			<text x="820" y="140" style="font-family: Helvetica; font-size: 13px;fill: rgb(14%,21%,29%); stroke:none;" transform="translate(0,280) scale(1,-1)">No direct database access</text>
+			<path d="M 932,236 L 720,324 Z" style="stroke: rgb(58%,39%,0%); stroke-linecap: butt; stroke-width: 2; stroke-dasharray: 5, 4;"/>
+			<polygon points="720 324, 729.984 324.5652, 726.6489 316.5306" style="stroke: rgb(58%,39%,0%); stroke-linecap: butt; stroke-width: 1; fill: rgb(58%,39%,0%); fill-rule: evenodd;"/>
+			<text x="38" y="22" style="font-family: Helvetica; font-size: 11px;fill: rgb(32%,40%,48%); stroke:none;" transform="translate(0,44) scale(1,-1)">All components are proposed. Solid arrows = runtime calls; dashed arrows = supporting or optional paths.</text>
+		</g>
+	</g>
+</svg>

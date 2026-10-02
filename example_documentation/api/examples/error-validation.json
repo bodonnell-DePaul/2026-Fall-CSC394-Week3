@@ -1,0 +1,21 @@
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request data.",
+    "details": [
+      {
+        "field": "itemId",
+        "message": "Must be a UUID."
+      },
+      {
+        "field": "clientRequestId",
+        "message": "Required."
+      },
+      {
+        "field": "memberId",
+        "message": "Not allowed. The server identifies the member from the access token."
+      }
+    ],
+    "requestId": "req-demo-validation"
+  }
+}
